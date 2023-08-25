@@ -92,15 +92,28 @@ func (c *Conn) outboundHandle(handler OutboundHandler, connectionDelay, connectT
 	c.ExitAndClose()
 }
 
+// SetCloseDelay - This method sets the delay shutdown time
+// This method sets the delay shutdown time.
+// If it is less than 0, it is not closed,
+// and if it is equal to 0, it is closed immediately by default
+func (c *Conn) SetCloseDelay(s time.Duration) {
+	c.closeDelay = s
+}
+
+// delayClose - The connection is closed after the delay time is set
+func (c *Conn) delayClose() {
+	if c.closeDelay >= 0 {
+		time.AfterFunc(c.closeDelay*time.Second, func() {
+			c.Close()
+		})
+	}
+}
+
 func (c *Conn) dummyLoop() {
 	select {
 	case <-c.responseChannels[TypeDisconnect]:
 		c.logger.Info("Disconnect outbound connection", c.conn.RemoteAddr())
-		if c.closeDelay >= 0 {
-			time.AfterFunc(c.closeDelay*time.Second, func() {
-				c.Close()
-			})
-		}
+		c.delayClose()
 	case <-c.responseChannels[TypeAuthRequest]:
 		c.logger.Debug("Ignoring auth request on outbound connection", c.conn.RemoteAddr())
 	case <-c.runningContext.Done():

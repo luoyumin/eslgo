@@ -24,6 +24,7 @@ type InboundOptions struct {
 	Network      string        // The network type to use, should always be tcp, tcp4, tcp6.
 	Password     string        // The password used to authenticate with FreeSWITCH. Usually ClueCon
 	OnDisconnect func()        // An optional function to be called with the inbound connection gets disconnected
+	OnEndOfRun   func()        // An optional function to execute at the end of the run
 	AuthTimeout  time.Duration // How long to wait for authentication to complete
 }
 
@@ -36,10 +37,11 @@ var DefaultInboundOptions = InboundOptions{
 }
 
 // Dial - Connects to FreeSWITCH ESL at the provided address and authenticates with the provided password. onDisconnect is called when the connection is closed either by us, FreeSWITCH, or network error
-func Dial(address, password string, onDisconnect func()) (*Conn, error) {
+func Dial(address, password string, onDisconnect, onEndOfRun func()) (*Conn, error) {
 	opts := DefaultInboundOptions
 	opts.Password = password
 	opts.OnDisconnect = onDisconnect
+	opts.OnEndOfRun = onEndOfRun
 	return opts.Dial(address)
 }
 
@@ -70,8 +72,18 @@ func (opts InboundOptions) Dial(address string) (*Conn, error) {
 	// Inbound only handlers
 	go connection.authLoop(command.Auth{Password: opts.Password}, opts.AuthTimeout)
 	go connection.disconnectLoop(opts.OnDisconnect)
+	go connection.endRunningLoop(opts.OnEndOfRun)
 
 	return connection, nil
+}
+
+func (c *Conn) endRunningLoop(onEndOfRun func()) {
+	select {
+	case <-c.runningContext.Done():
+		if onEndOfRun != nil {
+			onEndOfRun()
+		}
+	}
 }
 
 func (c *Conn) disconnectLoop(onDisconnect func()) {

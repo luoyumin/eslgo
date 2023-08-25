@@ -16,6 +16,7 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"github.com/luoyumin/eslgo/command"
+	"io"
 	"net"
 	"net/textproto"
 	"sync"
@@ -116,27 +117,10 @@ func (c *Conn) RemoveEventListener(channelUUID string, id string) {
 	}
 }
 
-// setCloseDelay - set "Conn" closeDelay
-func (c *Conn) setCloseDelay(cmd command.Command) {
-	if linger, ok := cmd.(command.Linger); ok {
-		if linger.Enabled {
-			if linger.Seconds > 0 {
-				c.closeDelay = linger.Seconds
-			} else {
-				c.closeDelay = -1
-			}
-		} else {
-			c.closeDelay = 0
-		}
-	}
-}
-
 // SendCommand - Sends the specified ESL command to FreeSWITCH with the provided context. Returns the response data and any errors encountered.
 func (c *Conn) SendCommand(ctx context.Context, cmd command.Command) (*RawResponse, error) {
 	c.writeLock.Lock()
 	defer c.writeLock.Unlock()
-
-	c.setCloseDelay(cmd)
 
 	if deadline, ok := ctx.Deadline(); ok {
 		_ = c.conn.SetWriteDeadline(deadline)
@@ -285,6 +269,9 @@ func (c *Conn) receiveLoop() {
 	for c.runningContext.Err() == nil {
 		err := c.doMessage()
 		if err != nil {
+			if err == io.EOF {
+				c.Close()
+			}
 			c.logger.Warn("Error receiving message: %s\n", err.Error())
 			break
 		}
