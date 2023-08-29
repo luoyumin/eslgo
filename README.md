@@ -13,7 +13,7 @@ eslgo was written from the ground up in idiomatic Go for use in our production p
 go get github.com/luoyumin/eslgo
 ```
 ```
-github.com/luoyumin/eslgo v1.4.1
+github.com/luoyumin/eslgo v1.4.2
 ```
 
 ## Overview
