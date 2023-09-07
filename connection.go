@@ -268,9 +268,6 @@ func (c *Conn) receiveLoop() {
 	for c.runningContext.Err() == nil {
 		err := c.doMessage()
 		if err != nil {
-			//if err == io.EOF {
-			//	c.Close()
-			//}
 			c.logger.Warn("Error receiving message: %s\n", err.Error())
 			break
 		}

@@ -89,8 +89,7 @@ func (c *Conn) endRunningLoop(onEndOfRun func()) {
 func (c *Conn) disconnectLoop(onDisconnect func()) {
 	select {
 	case <-c.responseChannels[TypeDisconnect]:
-		//c.Close()
-		fmt.Println("disconnectLoop 93")
+		c.Close()
 		if onDisconnect != nil {
 			onDisconnect()
 		}
