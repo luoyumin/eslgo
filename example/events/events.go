@@ -23,8 +23,6 @@ func main() {
 	// Connect to FreeSWITCH
 	conn, err := eslgo.Dial("127.0.0.1:8021", "ClueCon", func() {
 		fmt.Println("Inbound Connection Disconnected")
-	}, func() {
-		fmt.Println("Inbound Connection End Of Running")
 	})
 	if err != nil {
 		fmt.Println("Error connecting", err)
