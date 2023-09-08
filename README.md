@@ -13,7 +13,7 @@ eslgo was written from the ground up in idiomatic Go for use in our production p
 go get github.com/luoyumin/eslgo
 ```
 ```
-github.com/luoyumin/eslgo v1.4.1
+github.com/luoyumin/eslgo v1.4.3
 ```
 
 ## Overview
@@ -74,8 +74,6 @@ func main() {
 	// Connect to FreeSWITCH
 	conn, err := eslgo.Dial("127.0.0.1:8021", "ClueCon", func() {
 		fmt.Println("Inbound Connection Disconnected")
-	}, func() {
-		fmt.Println("Inbound Connection End Of Running")
 	})
 	if err != nil {
 		fmt.Println("Error connecting", err)
