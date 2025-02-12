@@ -123,6 +123,8 @@ func (c *Conn) SendCommand(ctx context.Context, cmd command.Command) (*RawRespon
 
 	if deadline, ok := ctx.Deadline(); ok {
 		_ = c.conn.SetWriteDeadline(deadline)
+	} else {
+		_ = c.conn.SetWriteDeadline(time.Time{})
 	}
 	_, err := c.conn.Write([]byte(cmd.BuildMessage() + EndOfMessage))
 	if err != nil {
